@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, BrowserView } from 'electron';
 const fs = require('fs');
 let electronSocket;
 
@@ -28,6 +28,16 @@ export = (socket: SocketIO.Socket) => {
         } else {
             getWindowById(id).webContents.openDevTools();
         }
+    });
+
+    socket.on('webContents-getPrinters', async (id) => {
+        const printers = await getWindowById(id).webContents.getPrinters();
+        electronSocket.emit('webContents-getPrinters-completed', printers);
+    });
+
+    socket.on('webContents-print', async (id, options = {}) => {
+        await getWindowById(id).webContents.print(options);
+        electronSocket.emit('webContents-print-completed', true);
     });
 
     socket.on('webContents-printToPDF', async (id, options = {}, path) => {
@@ -164,7 +174,59 @@ export = (socket: SocketIO.Socket) => {
         browserWindow.webContents.session.setUserAgent(userAgent, acceptLanguages);
     });
 
-    function getWindowById(id: number): Electron.BrowserWindow {
+    socket.on('register-webContents-session-cookies-changed', (id) => {
+        const browserWindow = getWindowById(id);
+
+        browserWindow.webContents.session.cookies.removeAllListeners('changed');
+        browserWindow.webContents.session.cookies.on('changed', (event, cookie, cause, removed) => {
+            electronSocket.emit('webContents-session-cookies-changed' + id, [cookie, cause, removed]);
+        });
+    });
+
+    socket.on('webContents-session-cookies-get', async (id, filter, guid) => {
+        const browserWindow = getWindowById(id);
+        const cookies = await browserWindow.webContents.session.cookies.get(filter);
+
+        electronSocket.emit('webContents-session-cookies-get-completed' + guid, cookies);
+    });
+
+    socket.on('webContents-session-cookies-set', async (id, details, guid) => {
+        const browserWindow = getWindowById(id);
+        await browserWindow.webContents.session.cookies.set(details);
+
+        electronSocket.emit('webContents-session-cookies-set-completed' + guid);
+    });
+
+    socket.on('webContents-session-cookies-remove', async (id, url, name, guid) => {
+        const browserWindow = getWindowById(id);
+        await browserWindow.webContents.session.cookies.remove(url, name);
+
+        electronSocket.emit('webContents-session-cookies-remove-completed' + guid);
+    });
+
+    socket.on('webContents-session-cookies-flushStore', async (id, guid) => {
+        const browserWindow = getWindowById(id);
+        await browserWindow.webContents.session.cookies.flushStore();
+
+        electronSocket.emit('webContents-session-cookies-flushStore-completed' + guid);
+    });
+
+    socket.on('webContents-loadURL', (id, url, options) => {
+        const browserWindow = getWindowById(id);
+        browserWindow.webContents.loadURL(url, options).then(() => {
+            electronSocket.emit('webContents-loadURL-complete' + id);
+        }).catch((error) => {
+            console.error(error);
+            electronSocket.emit('webContents-loadURL-error' + id, error);
+        });
+    });
+
+    function getWindowById(id: number): Electron.BrowserWindow | Electron.BrowserView {
+
+        if (id >= 1000) {
+            return BrowserView.fromId(id - 1000);
+        }
+
         return BrowserWindow.fromId(id);
     }
 };

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
 
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>dotnet-electronize</AssemblyName>
     <ToolCommandName>electronize</ToolCommandName>
 
@@ -29,6 +29,11 @@
     <PackageReleaseNotes>Changelog: https://github.com/ElectronNET/Electron.NET/blob/master/Changelog.md</PackageReleaseNotes>
     <PackageIcon>PackageIcon.png</PackageIcon>
     <PackAsTool>true</PackAsTool>
+    <StartupObject></StartupObject>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
@@ -37,7 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="PackageIcon.png" Pack="true" PackagePath="\"/>
+    <None Include="PackageIcon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,6 +61,7 @@
     <EmbeddedResource Include="..\ElectronNET.Host\api\browserWindows.js" Link="ElectronHost\api\browserWindows.js" />
     <EmbeddedResource Include="..\ElectronNET.Host\api\commandLine.js" Link="ElectronHost\api\commandLine.js" />
     <EmbeddedResource Include="..\ElectronNET.Host\api\dialog.js" Link="ElectronHost\api\dialog.js" />
+    <EmbeddedResource Include="..\ElectronNET.Host\api\dock.js" Link="ElectronHost\api\dock.js" />
     <EmbeddedResource Include="..\ElectronNET.Host\api\menu.js" Link="ElectronHost\api\menu.js" />
     <EmbeddedResource Include="..\ElectronNET.Host\api\notification.js" Link="ElectronHost\api\notification.js" />
     <EmbeddedResource Include="..\ElectronNET.Host\api\tray.js" Link="ElectronHost\api\tray.js" />
@@ -65,6 +71,9 @@
     <EmbeddedResource Include="..\ElectronNET.Host\api\webContents.js" Link="ElectronHost\api\webContents.js" />
     <EmbeddedResource Include="..\ElectronNET.Host\api\clipboard.js" Link="ElectronHost\api\clipboard.js" />
     <EmbeddedResource Include="..\ElectronNET.Host\api\autoUpdater.js" Link="ElectronHost\api\autoUpdater.js" />
+    <EmbeddedResource Include="..\ElectronNET.Host\api\browserView.js" Link="ElectronHost\api\browserView.js" />
+    <EmbeddedResource Include="..\ElectronNET.Host\api\powerMonitor.js" Link="ElectronHost\api\powerMonitor.js" />
+    <EmbeddedResource Include="..\ElectronNET.Host\api\nativeTheme.js" Link="ElectronHost\api\nativeTheme.js" />
   </ItemGroup>
 
   <ItemGroup>

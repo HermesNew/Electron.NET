@@ -1,8 +1,84 @@
 # Not released
 
-# 7.30.3
-
 # Released
+
+# 9.31.2
+
+* Electron-Builder fixed for Windows builds.
+
+# 9.31.1
+
+ElectronNET.CLI:
+
+* New Feature: Added config parameter (thanks [konstantingross](https://github.com/konstantingross)) [\#409](https://github.com/ElectronNET/Electron.NET/pull/409)
+* New Feature: Set the configuration environment with the electron.manifest.json file.
+* Fixed bug: Custom user path removed and replaced by the correct directory with VS macro (When ElectronNET.CLI is the Startup Project, press F5 (Debug) and the ElectronNET.WebApp starts correctly without error!) (thanks [konstantingross](https://github.com/konstantingross)) [\#409](https://github.com/ElectronNET/Electron.NET/pull/409)
+
+ElectronNET.API:
+
+* New Feature: Native Electron 9.0.3 support, but not all new features (we search contributors)
+* New Feature: PowerMonitor API Support (thanks [gustavo-lara-molina](https://github.com/gustavo-lara-molina)) [\#399](https://github.com/ElectronNET/Electron.NET/pull/399) [\#423](https://github.com/ElectronNET/Electron.NET/pull/423)
+* New Feature: NativeTheme API Support (thanks [konstantingross](https://github.com/konstantingross)) [\#402](https://github.com/ElectronNET/Electron.NET/pull/402)
+* New Feature: Cookie API Support (thanks [freosc](https://github.com/freosc)) [\#413](https://github.com/ElectronNET/Electron.NET/pull/413)
+* Changed Feature: Removed dock methods from App API and moved to Dock API (thanks [konstantingross](https://github.com/konstantingross)) [\#422](https://github.com/ElectronNET/Electron.NET/pull/422)
+* App-Api Enhancement: MenuItems with Submenus need an submenu type workaround [\#412](https://github.com/ElectronNET/Electron.NET/issues/412)
+* App-Api Enhancement: Added UserAgentFallback (thanks [Mandrakia](https://github.com/Mandrakia)) [\#406](https://github.com/ElectronNET/Electron.NET/pull/406)
+* App-Api Enhancement: Summaries rewritten, new App.IsReady / App.HasSingleInstanceLock property, App.Ready event, App.Focus with force parameter method, many parameters changes (thanks [konstantingross](https://github.com/konstantingross)) [\#415](https://github.com/ElectronNET/Electron.NET/pull/415) [\#422](https://github.com/ElectronNET/Electron.NET/pull/422)
+* App-Api Enhancement: New App.IsReady property and App.Ready event (thanks [konstantingross](https://github.com/konstantingross)) [\#415](https://github.com/ElectronNET/Electron.NET/pull/415)
+* Shell-Api Enhancement: API fixes for Electron 9.0.0 / Added missing parameters / Summaries rewritten (thanks [konstantingross](https://github.com/konstantingross)) [\#417](https://github.com/ElectronNET/Electron.NET/pull/417) [\#418](https://github.com/ElectronNET/Electron.NET/pull/418)
+* Notification-Api Enhancement: Added missing properties in Notifications (thanks [konstantingross](https://github.com/konstantingross)) [\#410](https://github.com/ElectronNET/Electron.NET/pull/410)
+* BrowserWindows-Api Enhancement: Add missing API call for SetProgressBar options (thanks [konstantingross](https://github.com/konstantingross)) [\#416](https://github.com/ElectronNET/Electron.NET/pull/416)
+* BrowserWindow Enhancement: Add BrowserWindow.GetNativeWindowHandle() (thanks [kdlslyv](https://github.com/kdlslyv)) [\#429](https://github.com/ElectronNET/Electron.NET/pull/429)
+* HostHook-Api Enhancement: HostHook.CallAsync should use TaskCompletionSource.SetException instead of throwing exception (thanks [Fre V](https://github.com/freosc)) [\#430](https://github.com/ElectronNET/Electron.NET/pull/430)
+* MacOS Enhancement: Application exit logic (thanks [dafergu2](https://github.com/dafergu2)) [\#405](https://github.com/ElectronNET/Electron.NET/pull/405)
+* Fixed bug: ElectronNET.API.Entities.WebPreferences.ContextIsolation [DefaultValue(true)] [\#411](https://github.com/ElectronNET/Electron.NET/issues/411)
+
+ElectronNET.WebApp (internal use):
+* Improvement debugging and testing new API calls (without install ElectronNET.CLI) (thanks [konstantingross](https://github.com/konstantingross)) [\#425](https://github.com/ElectronNET/Electron.NET/pull/425)
+* Fixed bug: Cannot find modules in ElectronHostHook (thanks [konstantingross](https://github.com/konstantingross)) [\#425](https://github.com/ElectronNET/Electron.NET/pull/425)
+
+Thank you for donation [Phil Seeman](https://github.com/mpnow) ❤
+
+# 8.31.2
+
+ElectronNET.CLI:
+* New Feature: Deactivate PublishReadyToRun for build or start [\#395](https://github.com/ElectronNET/Electron.NET/issues/395)
+  
+   `electronize build /target win /PublishReadyToRun false`  
+   `electronize start /PublishReadyToRun false`   
+* Fixed bug: Application window doesn't open after packaging  [\#387](https://github.com/ElectronNET/Electron.NET/issues/387)
+
+ElectronNET.API:
+
+* New Feature: NativeImage Support (thanks [ThrDev](https://github.com/ThrDev)) [\#394](https://github.com/ElectronNET/Electron.NET/pull/394)  
+* New Feature: Update menu items for context menu and system tray on-the-fly. [\#270](https://github.com/ElectronNET/Electron.NET/pull/270)  
+
+
+# 8.31.1
+
+ElectronNET.CLI:
+* New Feature: Set a name and author of the app in `electron.manifest.json` [\#348](https://github.com/ElectronNET/Electron.NET/issues/348#issuecomment-615977950) [\#310](https://github.com/ElectronNET/Electron.NET/issues/310#issuecomment-617361086)
+* New Feature: Live reload (thanks [syedadeel2](https://github.com/syedadeel2)) [\#390](https://github.com/ElectronNET/Electron.NET/pull/390)  
+`electronize start /watch`
+* New Feature: Every new window will created with an clear cache [\#273](https://github.com/ElectronNET/Electron.NET/issues/273)  
+`electronize start /clear-cache`
+
+ElectronNET.API:
+
+* New Feature: Native Electron 8.2.3 support, but not all new features (we search contributors)
+* New Feature: We incease the startup time for ~25-36% [\#356](https://github.com/ElectronNET/Electron.NET/issues/356)
+* New Feature: Added print capability (thanks [x-xx-o](https://github.com/x-xx-o)) [\#355](https://github.com/ElectronNET/Electron.NET/pull/355)
+* New Feature: BrowserView API [\#371](https://github.com/ElectronNET/Electron.NET/issues/371)
+* Changed App.GetNameAsync and App.SetNameAsync to the App.Name Property [\#350](https://github.com/ElectronNET/Electron.NET/issues/350)
+* Fixed bug: Splash Screen disappearing on click [\#357](https://github.com/ElectronNET/Electron.NET/issues/357)
+* Fixed bug: Start MenuRole enum at 1 (thanks [jjuback](https://github.com/jjuback)) [\#369](https://github.com/ElectronNET/Electron.NET/pull/369)
+* Fixed bug: BridgeConnector not connected (spam console) [\#347](https://github.com/ElectronNET/Electron.NET/issues/347)
+* Fixed bug: BrowserWindowOptions is not setting Width and Height properly [\#373](https://github.com/ElectronNET/Electron.NET/issues/373)
+* Fixed bug: IpcMain.Once(string) is not one time use, is not removing listener [\#366](https://github.com/ElectronNET/Electron.NET/issues/366)
+* Fixed bug: IpcMain.RemoveAllListeners(string) is not removing the listeners [\#365](https://github.com/ElectronNET/Electron.NET/issues/365)
+* Fixed bug: GetLoginItemSettingsAsync does not work [\#352](https://github.com/ElectronNET/Electron.NET/issues/352)
+* Fixed bug: Using OnReadyToShow to display the main window in Blazor does not seem to work with Show set to false [\#361](https://github.com/ElectronNET/Electron.NET/issues/361)
+* Fixed bug: Unable to disable WebSecurity along with NodeIntegration enabled [\#389](https://github.com/ElectronNET/Electron.NET/issues/389)
 
 # 7.30.2
 

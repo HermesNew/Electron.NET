@@ -1,13 +1,20 @@
 let isQuitWindowAllClosed = true, electronSocket;
+let appWindowAllClosedEventId;
 export = (socket: SocketIO.Socket, app: Electron.App) => {
     electronSocket = socket;
-    // Quit when all windows are closed.
+
+    // By default, quit when all windows are closed
     app.on('window-all-closed', () => {
         // On macOS it is common for applications and their menu bar
         // to stay active until the user quits explicitly with Cmd + Q
-        if (process.platform !== 'darwin' &&
-            isQuitWindowAllClosed) {
+        if (process.platform !== 'darwin' && isQuitWindowAllClosed) {
             app.quit();
+        } else if (appWindowAllClosedEventId) {
+            // If the user is on macOS
+            // - OR -
+            // If the user has indicated NOT to quit when all windows are closed,
+            // emit the event.
+            electronSocket.emit('app-window-all-closed' + appWindowAllClosedEventId);
         }
     });
 
@@ -16,9 +23,7 @@ export = (socket: SocketIO.Socket, app: Electron.App) => {
     });
 
     socket.on('register-app-window-all-closed-event', (id) => {
-        app.on('window-all-closed', () => {
-            electronSocket.emit('app-window-all-closed' + id);
-        });
+        appWindowAllClosedEventId = id;
     });
 
     socket.on('register-app-before-quit-event', (id) => {
@@ -79,8 +84,8 @@ export = (socket: SocketIO.Socket, app: Electron.App) => {
         app.relaunch(options);
     });
 
-    socket.on('appFocus', () => {
-        app.focus();
+    socket.on('appFocus', (options) => {
+        app.focus(options);
     });
 
     socket.on('appHide', () => {
@@ -95,6 +100,10 @@ export = (socket: SocketIO.Socket, app: Electron.App) => {
         const path = app.getAppPath();
         electronSocket.emit('appGetAppPathCompleted', path);
     });
+
+    socket.on('appSetAppLogsPath', (path) => {
+        app.setAppLogsPath(path);
+    });    
 
     socket.on('appGetPath', (name) => {
         const path = app.getPath(name);
@@ -137,12 +146,11 @@ export = (socket: SocketIO.Socket, app: Electron.App) => {
     });
 
     socket.on('appGetName', () => {
-        const name = app.getName();
-        electronSocket.emit('appGetNameCompleted', name);
+        electronSocket.emit('appGetNameCompleted', app.name);
     });
 
     socket.on('appSetName', (name) => {
-        app.setName(name);
+        app.name = name;
     });
 
     socket.on('appGetLocale', () => {
@@ -196,17 +204,31 @@ export = (socket: SocketIO.Socket, app: Electron.App) => {
         electronSocket.emit('appRequestSingleInstanceLockCompleted', success);
     });
 
+    socket.on('appHasSingleInstanceLock', () => {
+        const hasLock = app.hasSingleInstanceLock();
+
+        electronSocket.emit('appHasSingleInstanceLockCompleted', hasLock);
+    });
+
     socket.on('appReleaseSingleInstanceLock', () => {
         app.releaseSingleInstanceLock();
     });
 
-    socket.on('appSetUserActivity', (type, userInfo, webpageURL) => {
-        app.setUserActivity(type, userInfo, webpageURL);
+    socket.on('appSetUserActivity', (type, userInfo, webpageUrl) => {
+        app.setUserActivity(type, userInfo, webpageUrl);
     });
 
     socket.on('appGetCurrentActivityType', () => {
         const activityType = app.getCurrentActivityType();
         electronSocket.emit('appGetCurrentActivityTypeCompleted', activityType);
+    });
+    
+    socket.on('appInvalidateCurrentActivity', () => {
+        app.invalidateCurrentActivity();
+    });
+
+    socket.on('appResignCurrentActivity', () => {
+        app.resignCurrentActivity();
     });
 
     socket.on('appSetAppUserModelId', (id) => {
@@ -258,51 +280,23 @@ export = (socket: SocketIO.Socket, app: Electron.App) => {
         electronSocket.emit('appIsAccessibilitySupportEnabledCompleted', isAccessibilitySupportEnabled);
     });
 
+    socket.on('appSetAccessibilitySupportEnabled', (enabled) => {
+        app.setAccessibilitySupportEnabled(enabled);
+    });
+
+    socket.on('appShowAboutPanel', () => {
+        app.showAboutPanel();
+    });
+
     socket.on('appSetAboutPanelOptions', (options) => {
         app.setAboutPanelOptions(options);
+    });    
+
+    socket.on('appGetUserAgentFallback', () => {
+        electronSocket.emit('appGetUserAgentFallbackCompleted', app.userAgentFallback);
     });
 
-    socket.on('appDockBounce', (type) => {
-        const id = app.dock.bounce(type);
-        electronSocket.emit('appDockBounceCompleted', id);
-    });
-
-    socket.on('appDockCancelBounce', (id) => {
-        app.dock.cancelBounce(id);
-    });
-
-    socket.on('appDockDownloadFinished', (filePath) => {
-        app.dock.downloadFinished(filePath);
-    });
-
-    socket.on('appDockSetBadge', (text) => {
-        app.dock.setBadge(text);
-    });
-
-    socket.on('appDockGetBadge', () => {
-        const text = app.dock.getBadge();
-        electronSocket.emit('appDockGetBadgeCompleted', text);
-    });
-
-    socket.on('appDockHide', () => {
-        app.dock.hide();
-    });
-
-    socket.on('appDockShow', () => {
-        app.dock.show();
-    });
-
-    socket.on('appDockIsVisible', () => {
-        const isVisible = app.dock.isVisible();
-        electronSocket.emit('appDockIsVisibleCompleted', isVisible);
-    });
-
-    // TODO: Menü Lösung muss noch implementiert werden
-    socket.on('appDockSetMenu', (menu) => {
-        app.dock.setMenu(menu);
-    });
-
-    socket.on('appDockSetIcon', (image) => {
-        app.dock.setIcon(image);
+    socket.on('appSetUserAgentFallback', (userAgent) => {
+        app.userAgentFallback = userAgent;
     });
 };

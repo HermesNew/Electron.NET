@@ -252,6 +252,7 @@ namespace ElectronNET.API
         {
             menuItems.AddMenuItemsId();
             BridgeConnector.Socket.Emit("create-tray", image, JArray.FromObject(menuItems, _jsonSerializer));
+            _items.Clear();
             _items.AddRange(menuItems);
 
             BridgeConnector.Socket.Off("trayMenuItemClicked");
@@ -260,6 +261,15 @@ namespace ElectronNET.API
                 MenuItem menuItem = _items.GetMenuItem(id.ToString());
                 menuItem?.Click();
             });
+        }
+
+        /// <summary>
+        /// Shows the Traybar (empty).
+        /// </summary>
+        /// <param name="image">The image.</param>
+        public void Show(string image)
+        {
+            BridgeConnector.Socket.Emit("create-tray", image);
         }
 
         /// <summary>
@@ -339,8 +349,7 @@ namespace ElectronNET.API
         private JsonSerializer _jsonSerializer = new JsonSerializer()
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            NullValueHandling = NullValueHandling.Ignore,
-            DefaultValueHandling = DefaultValueHandling.Ignore
+            NullValueHandling = NullValueHandling.Ignore
         };
     }
 }

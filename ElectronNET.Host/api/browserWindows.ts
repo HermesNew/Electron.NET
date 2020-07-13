@@ -1,12 +1,19 @@
-import { BrowserWindow, Menu, nativeImage } from 'electron';
+import { BrowserWindow, Menu, nativeImage, BrowserView } from 'electron';
 const path = require('path');
 const windows: Electron.BrowserWindow[] = [];
+let readyToShowWindowsIds: number[] = [];
 let window, lastOptions, electronSocket;
-
+let mainWindowURL;
 export = (socket: SocketIO.Socket, app: Electron.App) => {
     electronSocket = socket;
     socket.on('register-browserWindow-ready-to-show', (id) => {
+        if (readyToShowWindowsIds.includes(id)) {
+            readyToShowWindowsIds = readyToShowWindowsIds.filter(value => value !== id);
+            electronSocket.emit('browserWindow-ready-to-show' + id);
+        }
+
         getWindowById(id).on('ready-to-show', () => {
+            readyToShowWindowsIds.push(id);
             electronSocket.emit('browserWindow-ready-to-show' + id);
         });
     });
@@ -185,23 +192,34 @@ export = (socket: SocketIO.Socket, app: Electron.App) => {
         });
     });
 
-    function hasOwnChildreen(obj, ...childNames) {
-        for (let i = 0; i < childNames.length; i++) {
-            if (!obj || !obj.hasOwnProperty(childNames[i])) {
-                return false;
-            }
-            obj = obj[childNames[i]];
-        }
-
-        return true;
-    }
-
     socket.on('createBrowserWindow', (options, loadUrl) => {
-        if (!hasOwnChildreen(options, 'webPreferences', 'nodeIntegration')) {
+        if (options.webPreferences && !('nodeIntegration' in options.webPreferences)) {
+            options = { ...options, webPreferences: { ...options.webPreferences, nodeIntegration: true } };
+        } else if (!options.webPreferences) {
             options = { ...options, webPreferences: { nodeIntegration: true } };
         }
 
-        window = new BrowserWindow(options);
+        // we dont want to recreate the window when watch is ready.
+        if (app.commandLine.hasSwitch('watch') && app['mainWindowURL'] === loadUrl) {
+            window = app['mainWindow'];
+            if (window) {
+                window.reload();
+                windows.push(window);
+                electronSocket.emit('BrowserWindowCreated', window.id);
+                return;
+            }
+        } else {
+            window = new BrowserWindow(options);
+        }
+
+        window.on('ready-to-show', () => {
+            if (readyToShowWindowsIds.includes(window.id)) {
+                readyToShowWindowsIds = readyToShowWindowsIds.filter(value => value !== window.id);
+            } else {
+                readyToShowWindowsIds.push(window.id);
+            }
+        });
+
         lastOptions = options;
 
         window.on('closed', (sender) => {
@@ -231,6 +249,18 @@ export = (socket: SocketIO.Socket, app: Electron.App) => {
 
         if (loadUrl) {
             window.loadURL(loadUrl);
+        }
+
+        if (app.commandLine.hasSwitch('clear-cache') &&
+            app.commandLine.getSwitchValue('clear-cache')) {
+            window.webContents.session.clearCache();
+            console.log('auto clear-cache active for new window.');
+        }
+
+        // set main window url
+        if (app['mainWindowURL'] == undefined || app['mainWindowURL'] == "") {
+            app['mainWindowURL'] = loadUrl;
+            app['mainWindow'] = window;
         }
 
         windows.push(window);
@@ -523,6 +553,11 @@ export = (socket: SocketIO.Socket, app: Electron.App) => {
         electronSocket.emit('browserWindow-isKiosk-completed', isKiosk);
     });
 
+    socket.on('browserWindowGetNativeWindowHandle', (id) => {
+      const nativeWindowHandle = getWindowById(id).getNativeWindowHandle().readInt32LE(0).toString(16);
+      electronSocket.emit('browserWindow-getNativeWindowHandle-completed', nativeWindowHandle);
+    });
+
     socket.on('browserWindowSetRepresentedFilename', (id, filename) => {
         getWindowById(id).setRepresentedFilename(filename);
     });
@@ -591,6 +626,10 @@ export = (socket: SocketIO.Socket, app: Electron.App) => {
 
     socket.on('browserWindowSetProgressBar', (id, progress) => {
         getWindowById(id).setProgressBar(progress);
+    });
+
+    socket.on('browserWindowSetProgressBar', (id, progress, options) => {
+        getWindowById(id).setProgressBar(progress, options);
     });
 
     socket.on('browserWindowSetHasShadow', (id, hasShadow) => {
@@ -726,6 +765,12 @@ export = (socket: SocketIO.Socket, app: Electron.App) => {
 
         electronSocket.emit('browserWindow-getExtensions-completed', chromeExtensionInfo);
     });
+
+    socket.on('browserWindow-setBrowserView', (id, browserViewId) => {
+        const browserView = BrowserView.fromId(browserViewId);
+        getWindowById(id).setBrowserView(browserView);
+    });
+
 
     function getWindowById(id: number): Electron.BrowserWindow {
         for (let index = 0; index < windows.length; index++) {

@@ -25,6 +25,9 @@ namespace ElectronNET.CLI.Commands
         private string _aspCoreProjectPath = "project-path";
         private string _arguments = "args";
         private string _manifest = "manifest";
+        private string _clearCache = "clear-cache";
+        private string _paramPublishReadyToRun = "PublishReadyToRun";
+        private string _paramDotNetConfig = "dotnet-configuration";
 
         public Task<bool> ExecuteAsync()
         {
@@ -59,7 +62,28 @@ namespace ElectronNET.CLI.Commands
                 var platformInfo = GetTargetPlatformInformation.Do(string.Empty, string.Empty);
 
                 string tempBinPath = Path.Combine(tempPath, "bin");
-                var resultCode = ProcessHelper.CmdExecute($"dotnet publish -r {platformInfo.NetCorePublishRid} --output \"{tempBinPath}\"", aspCoreProjectPath);
+                var resultCode = 0;
+
+                string publishReadyToRun = "/p:PublishReadyToRun=";
+                if (parser.Arguments.ContainsKey(_paramPublishReadyToRun))
+                {
+                    publishReadyToRun += parser.Arguments[_paramPublishReadyToRun][0];
+                }
+                else
+                {
+                    publishReadyToRun += "true";
+                }
+
+                string configuration = "Debug";
+                if (parser.Arguments.ContainsKey(_paramDotNetConfig))
+                {
+                    configuration = parser.Arguments[_paramDotNetConfig][0];
+                }
+
+                if (parser != null && !parser.Arguments.ContainsKey("watch"))
+                {
+                    resultCode = ProcessHelper.CmdExecute($"dotnet publish -r {platformInfo.NetCorePublishRid} -c \"{configuration}\" --output \"{tempBinPath}\" {publishReadyToRun} --no-self-contained", aspCoreProjectPath);
+                }
 
                 if (resultCode != 0)
                 {
@@ -104,6 +128,16 @@ namespace ElectronNET.CLI.Commands
                     arguments += " --manifest=" + parser.Arguments[_manifest].First();
                 }
 
+                if (parser.Arguments.ContainsKey(_clearCache))
+                {
+                    arguments += " --clear-cache=true";
+                }
+
+                if (parser.Arguments.ContainsKey("watch"))
+                {
+                    arguments += " --watch=true";
+                }
+
                 string path = Path.Combine(tempPath, "node_modules", ".bin");
                 bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
@@ -111,6 +145,7 @@ namespace ElectronNET.CLI.Commands
                 {
                     Console.WriteLine("Invoke electron.cmd - in dir: " + path);
                     ProcessHelper.CmdExecute(@"electron.cmd ""..\..\main.js"" " + arguments, path);
+
                 }
                 else
                 {
@@ -121,7 +156,5 @@ namespace ElectronNET.CLI.Commands
                 return true;
             });
         }
-
-
     }
 }

@@ -11,6 +11,8 @@ namespace ElectronNET.WebApp.Controllers
         {
             if (HybridSupport.IsElectronActive)
             {
+                Electron.App.Ready += () => CreateContextMenu();
+
                 var menu = new MenuItem[] {
                 new MenuItem { Label = "Edit", Submenu = new MenuItem[] {
                     new MenuItem { Label = "Undo", Accelerator = "CmdOrCtrl+Z", Role = MenuRole.undo },
@@ -93,7 +95,6 @@ namespace ElectronNET.WebApp.Controllers
 
                 Electron.Menu.SetApplicationMenu(menu);
 
-                CreateContextMenu();
             }
 
             return View();
@@ -112,11 +113,12 @@ namespace ElectronNET.WebApp.Controllers
                 new MenuItem { Label = "Electron.NET", Type = MenuType.checkbox, Checked = true }
             };
 
-            var mainWindow = Electron.WindowManager.BrowserWindows.First();
+            var mainWindow = Electron.WindowManager.BrowserWindows.FirstOrDefault();
             Electron.Menu.SetContextMenu(mainWindow, menu);
 
             Electron.IpcMain.On("show-context-menu", (args) =>
             {
+                var mainWindow = Electron.WindowManager.BrowserWindows.FirstOrDefault();
                 Electron.Menu.ContextMenuPopup(mainWindow);
             });
         }

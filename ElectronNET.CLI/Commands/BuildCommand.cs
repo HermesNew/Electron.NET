@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using ElectronNET.CLI.Commands.Actions;
 
@@ -42,6 +41,7 @@ namespace ElectronNET.CLI.Commands
         private string _paramPackageJson = "package-json";
         private string _paramForceNodeInstall = "install-modules";
         private string _manifest = "manifest";
+        private string _paramPublishReadyToRun = "PublishReadyToRun";
 
         public Task<bool> ExecuteAsync()
         {
@@ -95,7 +95,17 @@ namespace ElectronNET.CLI.Commands
 
                 Console.WriteLine($"Build ASP.NET Core App for {platformInfo.NetCorePublishRid} under {configuration}-Configuration...");
 
-                var resultCode = ProcessHelper.CmdExecute($"dotnet publish -r {platformInfo.NetCorePublishRid} -c {configuration} --output \"{tempBinPath}\"", Directory.GetCurrentDirectory());
+                string publishReadyToRun = "/p:PublishReadyToRun=";
+                if (parser.Arguments.ContainsKey(_paramPublishReadyToRun))
+                {
+                    publishReadyToRun += parser.Arguments[_paramPublishReadyToRun][0];
+                } 
+                else
+                {
+                    publishReadyToRun += "true";
+                }
+
+                var resultCode = ProcessHelper.CmdExecute($"dotnet publish -r {platformInfo.NetCorePublishRid} -c \"{configuration}\" --output \"{tempBinPath}\" {publishReadyToRun} --self-contained", Directory.GetCurrentDirectory());
 
                 if (resultCode != 0)
                 {
@@ -176,7 +186,7 @@ namespace ElectronNET.CLI.Commands
                 ProcessHelper.CmdExecute($"node build-helper.js " + manifestFileName, tempPath);
 
                 Console.WriteLine($"Package Electron App for Platform {platformInfo.ElectronPackerPlatform}...");
-                ProcessHelper.CmdExecute($"npx electron-builder . --config=./bin/electron-builder.json --{platformInfo.ElectronPackerPlatform} --{electronArch} -c.electronVersion=7.1.2 {electronParams}", tempPath);
+                ProcessHelper.CmdExecute($"npx electron-builder --config=./bin/electron-builder.json --{platformInfo.ElectronPackerPlatform} --{electronArch} -c.electronVersion=9.0.5 {electronParams}", tempPath);
 
                 Console.WriteLine("... done");
 

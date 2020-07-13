@@ -48,5 +48,21 @@ module.exports = (socket) => {
     socket.on('clipboard-write', (data, type) => {
         electron_1.clipboard.write(data, type);
     });
+    socket.on('clipboard-readImage', (type) => {
+        const image = electron_1.clipboard.readImage(type);
+        electronSocket.emit('clipboard-readImage-Completed', { 1: image.toPNG().toString('base64') });
+    });
+    socket.on('clipboard-writeImage', (data, type) => {
+        const dataContent = JSON.parse(data);
+        const image = electron_1.nativeImage.createEmpty();
+        // tslint:disable-next-line: forin
+        for (const key in dataContent) {
+            const scaleFactor = key;
+            const bytes = data[key];
+            const buffer = Buffer.from(bytes, 'base64');
+            image.addRepresentation({ scaleFactor: +scaleFactor, buffer: buffer });
+        }
+        electron_1.clipboard.writeImage(image, type);
+    });
 };
 //# sourceMappingURL=clipboard.js.map
